@@ -10,29 +10,33 @@ app.use(express.json());
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-// Fake token prices
-const tokens = [
-  { symbol: "BTC", price: 67200 },
-  { symbol: "ETH", price: 3480 },
-  { symbol: "SOL", price: 172 },
-];
+async function fetchPrices() {
+  const res = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
+  );
+  const data = await res.json() as Record<string, { usd: number } | undefined>;
+  return [
+    { symbol: "BTC", price: data["bitcoin"]?.usd ?? 0 },
+    { symbol: "ETH", price: data["ethereum"]?.usd ?? 0 },
+    { symbol: "SOL", price: data["solana"]?.usd ?? 0 },
+  ];
+}
 
-// REST endpoint
-app.get("/prices", (req, res) => {
-  res.json(tokens);
+app.get("/prices", async (req, res) => {
+  const prices = await fetchPrices();
+  res.json(prices);
 });
 
-// WebSocket - send fake realtime prices every 2 seconds
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
-  const interval = setInterval(() => {
-    const updated = tokens.map((t) => ({
-      ...t,
-      price: +(t.price * (1 + (Math.random() - 0.5) * 0.02)).toFixed(2),
-    }));
-    ws.send(JSON.stringify(updated));
-  }, 2000);
+  const interval = setInterval(async () => {
+    const prices = await fetchPrices();
+    ws.send(JSON.stringify(prices));
+  }, 30000);
+
+  // Send immediately on connect
+  fetchPrices().then((prices) => ws.send(JSON.stringify(prices)));
 
   ws.on("close", () => {
     clearInterval(interval);
