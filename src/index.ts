@@ -14,6 +14,7 @@ async function fetchPrices() {
   const res = await fetch(
     "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
   );
+
   const data = await res.json() as Record<string, { usd: number } | undefined>;
   return [
     { symbol: "BTC", price: data["bitcoin"]?.usd ?? 0 },
