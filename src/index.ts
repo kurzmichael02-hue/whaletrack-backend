@@ -18,16 +18,33 @@ const WHALE_WALLETS = [
   { name: "Justin Sun", address: "0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296" },
 ];
 
+let cachedPrices = [
+  { symbol: "BTC", price: 0 },
+  { symbol: "ETH", price: 0 },
+  { symbol: "SOL", price: 0 },
+];
+
 async function fetchPrices() {
-  const res = await fetch(
-    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd"
-  );
-  const data = await res.json() as Record<string, { usd: number } | undefined>;
-  return [
-    { symbol: "BTC", price: data["bitcoin"]?.usd ?? 0 },
-    { symbol: "ETH", price: data["ethereum"]?.usd ?? 0 },
-    { symbol: "SOL", price: data["solana"]?.usd ?? 0 },
-  ];
+  try {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd",
+      { headers: { "Accept": "application/json" } }
+    );
+    const data = await res.json() as Record<string, { usd: number } | undefined>;
+    const btc = data["bitcoin"]?.usd;
+    const eth = data["ethereum"]?.usd;
+    const sol = data["solana"]?.usd;
+    if (btc && eth && sol) {
+      cachedPrices = [
+        { symbol: "BTC", price: btc },
+        { symbol: "ETH", price: eth },
+        { symbol: "SOL", price: sol },
+      ];
+    }
+  } catch (e) {
+    console.error("CoinGecko fetch failed:", e);
+  }
+  return cachedPrices;
 }
 
 async function fetchWhaleTransactions(address: string) {
@@ -72,7 +89,7 @@ wss.on("connection", (ws) => {
   const interval = setInterval(async () => {
     const prices = await fetchPrices();
     ws.send(JSON.stringify({ type: "prices", data: prices }));
-  }, 30000);
+  }, 60000);
 
   fetchPrices().then((prices) => ws.send(JSON.stringify({ type: "prices", data: prices })));
 
