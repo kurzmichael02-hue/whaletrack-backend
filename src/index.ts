@@ -31,7 +31,7 @@ async function fetchPrices() {
 }
 
 async function fetchWhaleTransactions(address: string) {
-  const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
+  const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
   const res = await fetch(url);
   const data = await res.json() as { result: Array<{
     hash: string;
