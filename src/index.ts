@@ -26,23 +26,20 @@ let cachedPrices = [
 
 async function fetchPrices() {
   try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=usd",
-      { headers: { "Accept": "application/json" } }
+    const symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+    const results = await Promise.all(
+      symbols.map((s) =>
+        fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${s}`)
+          .then((r) => r.json() as Promise<{ symbol: string; price: string }>)
+      )
     );
-    const data = await res.json() as Record<string, { usd: number } | undefined>;
-    const btc = data["bitcoin"]?.usd;
-    const eth = data["ethereum"]?.usd;
-    const sol = data["solana"]?.usd;
-    if (btc && eth && sol) {
-      cachedPrices = [
-        { symbol: "BTC", price: btc },
-        { symbol: "ETH", price: eth },
-        { symbol: "SOL", price: sol },
-      ];
-    }
+    cachedPrices = [
+      { symbol: "BTC", price: parseFloat(results[0]!.price) },
+      { symbol: "ETH", price: parseFloat(results[1]!.price) },
+      { symbol: "SOL", price: parseFloat(results[2]!.price) },
+    ];
   } catch (e) {
-    console.error("CoinGecko fetch failed:", e);
+    console.error("Binance fetch failed:", e);
   }
   return cachedPrices;
 }
