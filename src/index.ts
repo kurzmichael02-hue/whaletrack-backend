@@ -26,18 +26,26 @@ let cachedPrices = [
 
 async function fetchPrices() {
   try {
-    const symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
-    const results = await Promise.all(
-      symbols.map((s) =>
-        fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${s}`)
-          .then((r) => r.json() as Promise<{ symbol: string; price: string }>)
-      )
-    );
-    cachedPrices = [
-      { symbol: "BTC", price: parseFloat(results[0]!.price) },
-      { symbol: "ETH", price: parseFloat(results[1]!.price) },
-      { symbol: "SOL", price: parseFloat(results[2]!.price) },
-    ];
+    const [btcRes, ethRes, solRes] = await Promise.all([
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"),
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT"),
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT"),
+    ]);
+    const [btc, eth, sol] = await Promise.all([
+      btcRes.json() as Promise<{ price: string }>,
+      ethRes.json() as Promise<{ price: string }>,
+      solRes.json() as Promise<{ price: string }>,
+    ]);
+    const btcPrice = parseFloat(btc.price);
+    const ethPrice = parseFloat(eth.price);
+    const solPrice = parseFloat(sol.price);
+    if (!isNaN(btcPrice) && !isNaN(ethPrice) && !isNaN(solPrice)) {
+      cachedPrices = [
+        { symbol: "BTC", price: btcPrice },
+        { symbol: "ETH", price: ethPrice },
+        { symbol: "SOL", price: solPrice },
+      ];
+    }
   } catch (e) {
     console.error("Binance fetch failed:", e);
   }
