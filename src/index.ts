@@ -53,7 +53,7 @@ async function fetchPrices() {
 }
 
 async function fetchWhaleTransactions(address: string) {
-  const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
+  const url = `https://api.etherscan.io/v2/api?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=20&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
   const res = await fetch(url);
   const data = await res.json() as { result: Array<{
     hash: string;
@@ -63,14 +63,18 @@ async function fetchWhaleTransactions(address: string) {
     timeStamp: string;
   }> };
   if (!Array.isArray(data.result)) return [];
-  return data.result.map((tx) => ({
-    hash: tx.hash,
-    from: tx.from,
-    to: tx.to,
-    value: (parseFloat(tx.value) / 1e18).toFixed(4),
-    timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
-  }));
+  return data.result
+    .filter((tx) => parseFloat(tx.value) > 0)
+    .slice(0, 5)
+    .map((tx) => ({
+      hash: tx.hash,
+      from: tx.from,
+      to: tx.to,
+      value: (parseFloat(tx.value) / 1e18).toFixed(4),
+      timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
+    }));
 }
+
 
 app.get("/prices", async (req, res) => {
   const prices = await fetchPrices();
