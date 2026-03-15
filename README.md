@@ -1,23 +1,23 @@
-# WhaleTrack Backend 🐋
+# WhaleTrack Backend
 
-The backend service for WhaleTrack – a real-time Web3 trading dashboard.
-Handles live price streaming, whale wallet tracking and serves data to the frontend via REST and WebSocket.
+> **Note:** This backend is no longer in use. All data fetching was moved to Next.js API Routes on the frontend to avoid cold start issues with Render's free tier. Repo kept for reference.
 
-## Tech Stack
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Real-time:** WebSocket
-- **APIs:** CoinGecko, Etherscan
-- **Deployment:** Render
+## What it did
 
-## Features
-- Live cryptocurrency price streaming via WebSocket
-- Whale wallet transaction tracking
-- REST API endpoints for frontend data consumption
-- CORS configured for cross-origin frontend communication
+- Streamed live BTC, ETH, SOL prices via WebSocket (Binance API)
+- Tracked on-chain transactions from major Ethereum whale wallets (Etherscan V2)
+- REST endpoints consumed by the frontend
+
+## Stack
+
+- Node.js, Express, WebSocket, TypeScript
+- Binance API, Etherscan V2 API
+- Deployed on Render (free tier)
+
+## Why it was replaced
+
+Render's free tier spins down after inactivity — causing 50s+ delays on the first request. Moved everything to serverless Next.js API Routes on Vercel which have no cold start problem.
 
 ## Related
-- Frontend: [whaletrack](https://github.com/kurzmichael02-hue/whaletrack)
 
-## Status
-🚧 In Development
+- Frontend: [whaletrack](https://github.com/kurzmichael02-hue/whaletrack)
